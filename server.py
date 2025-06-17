@@ -58,8 +58,9 @@ def main():
         Endpoint to trigger the ingestion of news articles.
         """
         api_db = init_api_keys_db(args.api_keys)
+        sha256_api_key = hashlib.sha256(api_key.encode()).hexdigest()
         try:
-            location = load_api_key(api_db, api_key)
+            location = load_api_key(api_db, sha256_api_key)
         except Exception:
             raise HTTPException(status_code=401, detail=f"Invalid API key")
         finally:
@@ -91,8 +92,9 @@ def main():
         """
         # Check if header content type is text/plain
         api_db = init_api_keys_db(args.api_keys)
+        sha256_api_key = hashlib.sha256(api_key.encode()).hexdigest()
         try:
-            location = load_api_key(api_db, api_key)
+            location = load_api_key(api_db, sha256_api_key)
         except Exception:
             raise HTTPException(status_code=401, detail=f"Invalid API key")
         finally:
