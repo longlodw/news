@@ -66,12 +66,12 @@ def main():
             raise HTTPException(status_code=401, detail=f"Invalid API key with hash {sha256_api_key}")
         finally:
             api_db.close()
+        if from_time is None or from_time == "":
+            from_time_t = datetime.datetime.now() - datetime.timedelta(days=1)
+        else:
+            from_time_t = datetime.datetime.fromisoformat(from_time)
         with init_document_db(os.path.join(location, "documents.db")) as document_db, init_chat_db(os.path.join(location, "chat.db")) as chat_db:
             try:
-                if from_time is None:
-                    from_time_t = datetime.datetime.now() - datetime.timedelta(days=1)
-                else:
-                    from_time_t = datetime.datetime.fromisoformat(from_time)
                 store_content = partial(local_content_store.store_content, base_path=location)
                 
                 # Process and store the news articles as needed
