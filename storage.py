@@ -138,7 +138,6 @@ def init_api_keys_db(db_path: str) -> sqlite3.Connection:
         )
     ''')
     conn.commit()
-    conn.close()
     return conn
 
 def store_api_key(db: sqlite3.Connection, key: str, data_location: str):
