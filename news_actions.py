@@ -59,8 +59,11 @@ def ingest_news(
     print(f"'{User.ASKER}'")
     old_messages = load_chat_messages(chat_db)
     old_messages_contents = list(apply(old_messages, lambda x: f"{x[0]}: {x[1]}"))
-    old_messages_contents.append(f"list the most probable topic of interest to {User.ASKER} based on recent chat messages")
-    interests = generate_text(old_messages_contents)
+    if len(old_messages_contents) > 0:
+        old_messages_contents.append(f"list the most probable topic of interest to {User.ASKER} based on recent chat messages")
+        interests = generate_text(old_messages_contents)
+    else:
+        interests = "market, finance, technology, science, health, sports, entertainment"
     latest_news = get_latest_news(from_time, interests)
     for article in latest_news:
         match article:
