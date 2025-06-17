@@ -39,7 +39,8 @@ def chunk_text(text: str, chunk_size: int = 1024) -> List[str]:
 def ingest_news(
     get_latest_news: GetLatestNews,
     get_embedding: GetEmbedding,
-    db: sqlite3.Connection,
+    document_db: sqlite3.Connection,
+    chat_db: sqlite3.Connection,
     store_content: StoreContent,
     generate_text: GenerateText,
     from_time: datetime.datetime = datetime.datetime.now() - datetime.timedelta(days=1),
@@ -56,7 +57,7 @@ def ingest_news(
     Returns:
         str: A confirmation message indicating successful ingestion.
     """
-    old_messages = load_chat_messages(db)
+    old_messages = load_chat_messages(chat_db)
     old_messages_contents = list(apply(old_messages, lambda x: f"{x[0]}: {x[1]}"))
     old_messages_contents.append(f"list the most probable topic of interest to {User.ASKER} based on recent chat messages")
     interests = generate_text(old_messages_contents)
@@ -69,11 +70,11 @@ def ingest_news(
                 # Generate embeddings for each chunk
                 embeddings = get_embedding(chunks)
                 # Store the document and its chunks in the database
-                storage.store_document(db, store_content, title, url, list(zip(chunks, embeddings)))
+                storage.store_document(document_db, store_content, title, url, list(zip(chunks, embeddings)))
             case _:
                 continue  # Skip articles that do not match the expected format
     msg = generate_text(list(apply(latest_news, lambda x: f"{x['title']}: {x['content']}")) + [f"summarize the above articles and highlight the most important points"])
-    store_chat_message(db, User.BROADCASTER, msg)
+    store_chat_message(chat_db, User.BROADCASTER, msg)
     return msg
 
 def answer_question(

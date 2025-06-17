@@ -66,7 +66,7 @@ def main():
             raise HTTPException(status_code=401, detail=f"Invalid API key with hash {sha256_api_key}")
         finally:
             api_db.close()
-        with init_document_db(os.path.join(location, "documents.db")) as document_db:
+        with init_document_db(os.path.join(location, "documents.db")) as document_db, init_chat_db(os.path.join(location, "chat.db")) as chat_db:
             try:
                 if from_time is None:
                     from_time_t = datetime.datetime.now() - datetime.timedelta(days=1)
@@ -78,7 +78,8 @@ def main():
                 return {"status": "success", "message": ingest_news(
                     get_latest_news=get_latest_news,
                     get_embedding=get_embedding,
-                    db=document_db,
+                    document_db=document_db,
+                    chat_db=chat_db,
                     store_content=store_content,
                     generate_text=generate_text,
                     from_time=from_time_t
