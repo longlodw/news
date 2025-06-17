@@ -91,7 +91,10 @@ def store_document(db: sqlite3.Connection, store_content: StoreContent, title: s
         # Insert document
         cursor.execute('INSERT OR IGNORE INTO documents (title, url) VALUES (?, ?)', (title, url))
         document_id = cursor.lastrowid
+        print(f"Document ID: {document_id}")
         if document_id is None:
+            db.rollback()
+            print(f"Document with title '{title}' and URL '{url}' already exists.")
             return  # No document was inserted, possibly a duplicate
         
         # Insert chunks
@@ -106,21 +109,21 @@ def store_document(db: sqlite3.Connection, store_content: StoreContent, title: s
         db.rollback()
         raise e
 
-def load_documents(db: sqlite3.Connection, load_content: LoadContent, query_embedding: List[float], thresh: float = 0.7, limit: int = 32) -> List[Tuple[str, str]]:
+def load_documents(db: sqlite3.Connection, load_content: LoadContent, query_embedding: List[float], thresh: float = 0.3, limit: int = 32) -> List[Tuple[str, str, str, float]]:
     """
     Load documents based on a query embedding.
     """
     cursor = db.cursor()
     cursor.execute('''
-        SELECT d.title, c.location, vec_distance_cosine(c.embedding, ?) as score
+        SELECT d.title, d.url, c.location, vec_distance_cosine(c.embedding, ?) as score
         FROM documents d
         JOIN chunks c ON d.id = c.document_id
-        WHERE score >= ?
-        ORDER BY score ASC,
+        WHERE score <= ?
+        ORDER BY score DESC
         LIMIT ?
     ''', (sqlite_vec.serialize_float32(query_embedding), thresh, limit))
     
-    return list(apply(cursor.fetchall(), lambda row: (row[0], load_content(row[1]))))
+    return list(apply(cursor.fetchall(), lambda row: (row[0], row[1], load_content(row[2]), row[3])))
 
 def init_api_keys_db(db_path: str) -> sqlite3.Connection:
     """

@@ -21,21 +21,19 @@ def chunk_text(text: str, chunk_size: int = 1024) -> List[str]:
     Returns:
         List[str]: A list of text chunks.
     """
+    # Split the text into sentences delimited by . or ! or ? or newline
+    sentences = text.split(r'[.!?]\s+|\n')
     chunks = []
-    start = 0
-    while start < len(text):
-        end = min(start + chunk_size, len(text))
-        # Ensure we don't split mid-sentence ending on ., !, or ?
-        while end < len(text) and text[end] not in '.!?':
-            end += 1
-        if end == start:
-            end = start + chunk_size
-        chunks.append(text[start:end].strip())
-        start = end
-    if start < len(text):
-        chunks.append(text[start:].strip())
-    # Remove empty chunks
-    chunks = [chunk for chunk in chunks if chunk]
+    current_chunk = []
+    for sentence in sentences:
+        if len(current_chunk) + len(sentence) + 1 <= chunk_size:
+            current_chunk.append(sentence)
+        else:
+            if current_chunk:
+                chunks.append('\n'.join(current_chunk))
+            current_chunk = [sentence]
+    if current_chunk:
+        chunks.append('\n'.join(current_chunk))
     return chunks
 
 def ingest_news(
@@ -102,9 +100,9 @@ def answer_question(
     """
     embedding = get_embedding([question])[0]
     documents = storage.load_documents(document_db, load_content, embedding)
-    contents = list(apply(documents, lambda x: x[1]))
+    contents = list(apply(documents, lambda x: x[2]))
     store_chat_message(chat_db, User.ASKER, question)
     old_messages = load_chat_messages(chat_db)
-    explicit_question = generate_text(list(apply(old_messages, lambda x: f"{x[0]}: {x[1]}")) + [f"rephrase the question {question} to make it more explicit"])
+    explicit_question = generate_text(list(apply(old_messages, lambda x: f"{x[0]}: {x[1]}")) + [f"rephrase the question '{question}' to make it more explicit"])
     contents.append(explicit_question)
     return generate_text(contents)
