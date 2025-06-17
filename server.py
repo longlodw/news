@@ -1,5 +1,4 @@
 import datetime
-from functools import partial
 import os
 import uvicorn
 import base64
@@ -73,7 +72,7 @@ def main():
         print(f"'{from_time}'")
         with init_document_db(os.path.join(location, "documents.db")) as document_db, init_chat_db(os.path.join(location, "chat.db")) as chat_db:
             try:
-                store_content = partial(local_content_store.store_content, base_path=location)
+                store_content = lambda content: local_content_store.store_content(location, content)
                 
                 # Process and store the news articles as needed
                 return {"status": "success", "message": ingest_news(

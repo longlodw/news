@@ -63,7 +63,7 @@ def ingest_news(
         old_messages_contents.append(f"list the most probable topic of interest to {User.ASKER} based on recent chat messages")
         interests = generate_text(old_messages_contents)
     else:
-        interests = "market, finance, technology, science, health, sports, entertainment"
+        interests = "market"
     latest_news = get_latest_news(from_time, interests)
     if len(latest_news) == 0:
         return "No articles found for the specified time and interests."

@@ -1,8 +1,9 @@
+from os import path
 import uuid
 
 def store_content(base_path: str, content: str) -> str:
-    uuid_str = str(uuid.uuid4())
-    file_path = f"{base_path}/{uuid_str}.txt"
+    uuid_str = uuid.uuid4().hex
+    file_path = path.join(base_path, f"{uuid_str}.txt")
     with open(file_path, 'w', encoding='utf-8') as file:
         file.write(content)
     return file_path
