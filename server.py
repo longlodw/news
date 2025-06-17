@@ -54,10 +54,11 @@ def main():
         return {"status": "success", "api_key": base64.b64encode(api_key).decode()}
 
     @app.post("/api/ingest")
-    def _(from_time: str | None = Body(media_type="text/plain"), api_key: str = Security(api_key_header)):
+    def _(body: str | None = Body(media_type="text/plain"), api_key: str = Security(api_key_header)):
         """
         Endpoint to trigger the ingestion of news articles.
         """
+        from_time = body
         print(f"'{from_time}'")
         api_db = init_api_keys_db(args.api_keys)
         sha256_api_key = hashlib.sha256(base64.b64decode(api_key)).hexdigest()
