@@ -75,8 +75,7 @@ def init_document_db(db_path: str) -> sqlite3.Connection:
         CREATE VIRTUAL TABLE IF NOT EXISTS chunks USING vec0(
             location TEXT NOT NULL UNIQUE,
             document_id INTEGER NOT NULL,
-            embedding ANY NOT NULL,
-            FOREIGN KEY(document_id) REFERENCES documents(id) ON DELETE CASCADE
+            embedding FLOAT[768],
         )
     ''')
     conn.commit()
