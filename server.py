@@ -2,7 +2,8 @@ import datetime
 from functools import partial
 import os
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Body, FastAPI, HTTPException, Header, Request, Security
+from fastapi.security.api_key import APIKeyHeader
 import argparse
 import uuid
 import hashlib
@@ -32,6 +33,7 @@ def main():
 
     args = parser.parse_args()
     app = FastAPI()
+    api_key_header = APIKeyHeader(name="X-News-API-Key", auto_error=False)
     @app.post("/api/apikey")
     def _():
         """
@@ -51,27 +53,20 @@ def main():
         return {"status": "success", "api_key": str(api_key)}
 
     @app.post("/api/ingest")
-    def _(req: Request):
+    def _(from_time: datetime.datetime | None, api_key: str = Security(api_key_header)):
         """
         Endpoint to trigger the ingestion of news articles.
         """
-        headers = req.headers
-        news_api_key = headers.get("X-News-API-Key")
-        if not news_api_key:
-            raise HTTPException(status_code=400, detail="Missing X-News-API-Key header")
         api_db = init_api_keys_db(args.api_keys)
         try:
-            location = load_api_key(api_db, news_api_key)
+            location = load_api_key(api_db, api_key)
         except Exception:
             raise HTTPException(status_code=401, detail=f"Invalid API key")
         finally:
             api_db.close()
         with init_document_db(os.path.join(location, "documents.db")) as document_db:
             try:
-                from_time = req.query_params.get("from_time")
-                if from_time:
-                    from_time = datetime.datetime.fromisoformat(from_time)
-                else:
+                if from_time is None:
                     from_time = datetime.datetime.now() - datetime.timedelta(days=1)
                 store_content = partial(local_content_store.store_content, base_path=location)
                 
@@ -88,37 +83,27 @@ def main():
                 raise HTTPException(status_code=500, detail=f"Failed to ingest news: {str(e)}")
 
     @app.post("/api/chat")
-    async def _(req: Request):
+    async def _(body: str = Body(media_type="text/plain"), api_key: str = Security(api_key_header)):
         """
         Endpoint to handle chat messages.
         """
-        headers = req.headers
-        news_api_key = headers.get("X-News-API-Key")
-        if not news_api_key:
-            raise HTTPException(status_code=400, detail="Missing X-News-API-Key header")
         # Check if header content type is text/plain
-        if headers.get("Content-Type") != "text/plain":
-            raise HTTPException(status_code=400, detail="Content-Type must be text/plain")
         api_db = init_api_keys_db(args.api_keys)
         try:
-            location = load_api_key(api_db, news_api_key)
+            location = load_api_key(api_db, api_key)
         except Exception:
             raise HTTPException(status_code=401, detail=f"Invalid API key")
         finally:
             api_db.close()
         with init_document_db(os.path.join(location, "documents.db")) as document_db, init_chat_db(os.path.join(location, "chat.db")) as chat_db:
             try:
-                question_bytes = await req.body()
-                question = question_bytes.decode('utf-8')
-                if not question:
-                    raise HTTPException(status_code=400, detail="Question cannot be empty")
                 return {"status": "success", "message": answer_question(
                     get_embedding=get_embedding,
                     document_db=document_db,
                     chat_db=chat_db,
                     load_content=local_content_store.load_content,
                     generate_text=generate_text,
-                    question=question
+                    question=body
                 )}
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Failed to process chat message: {str(e)}")
