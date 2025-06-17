@@ -2,6 +2,7 @@ import datetime
 from functools import partial
 import os
 import uvicorn
+import base64
 from fastapi import Body, FastAPI, HTTPException, Security
 from fastapi.security.api_key import APIKeyHeader
 import argparse
@@ -40,8 +41,8 @@ def main():
         Endpoint to create a new API key for the news service.
         """
         api_db = init_api_keys_db(args.api_keys)
-        api_key = uuid.uuid4()
-        sha256_api_key = hashlib.sha256(api_key.bytes).hexdigest()
+        api_key = uuid.uuid4().bytes
+        sha256_api_key = hashlib.sha256(api_key).hexdigest()
         data_location = os.path.join(args.storage, sha256_api_key)
         try:
             os.makedirs(data_location)
@@ -50,7 +51,7 @@ def main():
             raise HTTPException(status_code=500, detail=f"Failed to create API key: {str(e)}")
         finally:
             api_db.close()
-        return {"status": "success", "api_key": str(api_key)}
+        return {"status": "success", "api_key": base64.b64encode(api_key).decode()}
 
     @app.post("/api/ingest")
     def _(from_time: str | None = None, api_key: str = Security(api_key_header)):
@@ -58,11 +59,11 @@ def main():
         Endpoint to trigger the ingestion of news articles.
         """
         api_db = init_api_keys_db(args.api_keys)
-        sha256_api_key = hashlib.sha256(api_key.encode()).hexdigest()
+        sha256_api_key = hashlib.sha256(base64.b64decode(api_key)).hexdigest()
         try:
             location = load_api_key(api_db, sha256_api_key)
         except Exception:
-            raise HTTPException(status_code=401, detail=f"Invalid API key")
+            raise HTTPException(status_code=401, detail=f"Invalid API key with hash {sha256_api_key}")
         finally:
             api_db.close()
         with init_document_db(os.path.join(location, "documents.db")) as document_db:
@@ -92,11 +93,11 @@ def main():
         """
         # Check if header content type is text/plain
         api_db = init_api_keys_db(args.api_keys)
-        sha256_api_key = hashlib.sha256(api_key.encode()).hexdigest()
+        sha256_api_key = hashlib.sha256(base64.b64decode(api_key)).hexdigest()
         try:
             location = load_api_key(api_db, sha256_api_key)
         except Exception:
-            raise HTTPException(status_code=401, detail=f"Invalid API key")
+            raise HTTPException(status_code=401, detail=f"Invalid API key with hash {sha256_api_key}")
         finally:
             api_db.close()
         with init_document_db(os.path.join(location, "documents.db")) as document_db, init_chat_db(os.path.join(location, "chat.db")) as chat_db:

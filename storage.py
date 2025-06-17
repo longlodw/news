@@ -68,6 +68,7 @@ def init_document_db(db_path: str) -> sqlite3.Connection:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
             url TEXT UNIQUE,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     ''')
     cursor.execute('''
