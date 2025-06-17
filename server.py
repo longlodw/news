@@ -30,7 +30,6 @@ def main():
     get_embedding = lambda texts: google_generative_ai.get_embedding(google_genai_client, texts)
     generate_text = lambda content: google_generative_ai.generate_text(google_genai_client, content)
 
-    api_db = init_api_keys_db(args.api_keys)
     args = parser.parse_args()
     app = FastAPI()
     @app.post("/api/apikey")
@@ -38,6 +37,7 @@ def main():
         """
         Endpoint to create a new API key for the news service.
         """
+        api_db = init_api_keys_db(args.api_keys)
         api_key = uuid.uuid4()
         sha256_api_key = hashlib.sha256(api_key.bytes).hexdigest()
         data_location = os.path.join(args.storage, sha256_api_key)
@@ -46,6 +46,8 @@ def main():
             store_api_key(api_db, sha256_api_key, data_location)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to create API key: {str(e)}")
+        finally:
+            api_db.close()
 
     @app.post("/api/ingest")
     def _(req: Request):
@@ -56,10 +58,13 @@ def main():
         news_api_key = headers.get("X-News-API-Key")
         if not news_api_key:
             raise HTTPException(status_code=400, detail="Missing X-News-API-Key header")
+        api_db = init_api_keys_db(args.api_keys)
         try:
             location = load_api_key(api_db, news_api_key)
         except Exception:
             raise HTTPException(status_code=401, detail=f"Invalid API key")
+        finally:
+            api_db.close()
         with init_document_db(os.path.join(location, "documents.db")) as document_db:
             try:
                 from_time = req.query_params.get("from_time")
@@ -93,10 +98,13 @@ def main():
         # Check if header content type is text/plain
         if headers.get("Content-Type") != "text/plain":
             raise HTTPException(status_code=400, detail="Content-Type must be text/plain")
+        api_db = init_api_keys_db(args.api_keys)
         try:
             location = load_api_key(api_db, news_api_key)
         except Exception:
             raise HTTPException(status_code=401, detail=f"Invalid API key")
+        finally:
+            api_db.close()
         with init_document_db(os.path.join(location, "documents.db")) as document_db, init_chat_db(os.path.join(location, "chat.db")) as chat_db:
             try:
                 question_bytes = await req.body()
