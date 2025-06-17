@@ -2,7 +2,7 @@ import datetime
 from functools import partial
 import os
 import uvicorn
-from fastapi import Body, FastAPI, HTTPException, Header, Request, Security
+from fastapi import Body, FastAPI, HTTPException, Security
 from fastapi.security.api_key import APIKeyHeader
 import argparse
 import uuid
@@ -53,7 +53,7 @@ def main():
         return {"status": "success", "api_key": str(api_key)}
 
     @app.post("/api/ingest")
-    def _(from_time: datetime.datetime | None, api_key: str = Security(api_key_header)):
+    def _(from_time: str | None = None, api_key: str = Security(api_key_header)):
         """
         Endpoint to trigger the ingestion of news articles.
         """
@@ -67,7 +67,9 @@ def main():
         with init_document_db(os.path.join(location, "documents.db")) as document_db:
             try:
                 if from_time is None:
-                    from_time = datetime.datetime.now() - datetime.timedelta(days=1)
+                    from_time_t = datetime.datetime.now() - datetime.timedelta(days=1)
+                else:
+                    from_time_t = datetime.datetime.fromisoformat(from_time)
                 store_content = partial(local_content_store.store_content, base_path=location)
                 
                 # Process and store the news articles as needed
@@ -77,7 +79,7 @@ def main():
                     db=document_db,
                     store_content=store_content,
                     generate_text=generate_text,
-                    from_time=from_time
+                    from_time=from_time_t
                 )}
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Failed to ingest news: {str(e)}")
