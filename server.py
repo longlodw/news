@@ -48,6 +48,7 @@ def main():
             raise HTTPException(status_code=500, detail=f"Failed to create API key: {str(e)}")
         finally:
             api_db.close()
+        return {"status": "success", "api_key": str(api_key)}
 
     @app.post("/api/ingest")
     def _(req: Request):
