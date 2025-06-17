@@ -61,7 +61,7 @@ def ingest_news(
     old_messages_contents = list(apply(old_messages, lambda x: f"{x[0]}: {x[1]}"))
     old_messages_contents.append(f"list the most probable topic of interest to {User.ASKER} based on recent chat messages")
     interests = generate_text(old_messages_contents)
-    latest_news = get_latest_news(interests, from_time)
+    latest_news = get_latest_news(from_time, interests)
     for article in latest_news:
         match article:
             case {'title': title, 'url': url, 'content': content}:
