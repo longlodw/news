@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Dict, List
 import newsapi
 
@@ -13,7 +12,7 @@ def get_newsapi_client(api_key: str) -> newsapi.NewsApiClient:
 
 def get_latest_news(
         client: newsapi.NewsApiClient,
-        from_time: datetime,
+        from_time: str,
         query: str
 ) -> List[Dict[str, str]]:
     """
@@ -23,7 +22,7 @@ def get_latest_news(
     :return: A list of dictionaries containing news articles.
     """
     response = client.get_everything(language='en', page_size=32, 
-                                      from_param=from_time.isoformat(),
+                                      from_param=from_time,
                                       q=query, sort_by='relevancy')
     match response:
         case {'status': 'ok', 'articles': articles}:

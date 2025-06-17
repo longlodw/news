@@ -1,4 +1,3 @@
-import datetime
 import sqlite3
 from typing import Dict, List, Callable
 
@@ -6,7 +5,7 @@ from func_iter import apply
 from storage import LoadContent, StoreContent, User, load_chat_messages, store_chat_message
 import storage
 
-GetLatestNews = Callable[[str, datetime.datetime], list[Dict[str, str]]]
+GetLatestNews = Callable[[str, str], list[Dict[str, str]]]
 GetEmbedding = Callable[[List[str]], List[List[float]]]
 GenerateText = Callable[[List[str]], str]
 
@@ -43,7 +42,7 @@ def ingest_news(
     chat_db: sqlite3.Connection,
     store_content: StoreContent,
     generate_text: GenerateText,
-    from_time: datetime.datetime = datetime.datetime.now() - datetime.timedelta(days=1),
+    from_time: str,
 ) -> str:
     """
     Ingests the latest news articles, generates embeddings, and stores them in the database.

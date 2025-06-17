@@ -67,9 +67,7 @@ def main():
         finally:
             api_db.close()
         if from_time is None or from_time == "":
-            from_time_t = datetime.datetime.now() - datetime.timedelta(days=1)
-        else:
-            from_time_t = datetime.datetime.fromisoformat(from_time)
+            from_time = (datetime.datetime.now() - datetime.timedelta(days=1)).isoformat()
         with init_document_db(os.path.join(location, "documents.db")) as document_db, init_chat_db(os.path.join(location, "chat.db")) as chat_db:
             try:
                 store_content = partial(local_content_store.store_content, base_path=location)
@@ -82,7 +80,7 @@ def main():
                     chat_db=chat_db,
                     store_content=store_content,
                     generate_text=generate_text,
-                    from_time=from_time_t
+                    from_time=from_time
                 )}
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Failed to ingest news: {str(e)}")
