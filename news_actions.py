@@ -56,7 +56,7 @@ def ingest_news(
     Returns:
         str: A confirmation message indicating successful ingestion.
     """
-    print(f"'{from_time}'")
+    print(f"'{User.ASKER}'")
     old_messages = load_chat_messages(chat_db)
     old_messages_contents = list(apply(old_messages, lambda x: f"{x[0]}: {x[1]}"))
     old_messages_contents.append(f"list the most probable topic of interest to {User.ASKER} based on recent chat messages")

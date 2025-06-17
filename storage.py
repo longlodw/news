@@ -40,7 +40,7 @@ def store_chat_message(db: sqlite3.Connection, user: User, message: str):
     cursor.execute('''
         INSERT INTO chat_messages (user, message)
         VALUES (?, ?)
-    ''', (user, message))
+    ''', (str(user.value), message))
     db.commit()
 
 def load_chat_messages(db: sqlite3.Connection) -> List[Tuple[str, str]]:
