@@ -60,10 +60,10 @@ def ingest_news(
     old_messages = load_chat_messages(chat_db)
     old_messages_contents = list(apply(old_messages, lambda x: f"{x[0]}: {x[1]}"))
     if len(old_messages_contents) > 0:
-        old_messages_contents.append(f"list the most probable topic of interest to {User.ASKER} based on recent chat messages")
+        old_messages_contents.append(f"what is the most probable topic of interest to {User.ASKER} based on recent chat messages in 1 phrase?")
         interests = generate_text(old_messages_contents)
     else:
-        interests = "market"
+        interests = ""
     latest_news = get_latest_news(from_time, interests)
     if len(latest_news) == 0:
         return "No articles found for the specified time and interests."
@@ -78,7 +78,7 @@ def ingest_news(
                 storage.store_document(document_db, store_content, title, url, list(zip(chunks, embeddings)))
             case _:
                 continue  # Skip articles that do not match the expected format
-    msg = generate_text(list(apply(latest_news, lambda x: f"{x['title']}: {x['content']}")) + [f"summarize the above articles and highlight the most important points"])
+    msg = generate_text(list(apply(latest_news, lambda x: f"{x['title']}: {x['content']}")) + [f"summarize the information from the news and highlight the most important points"])
     store_chat_message(chat_db, User.BROADCASTER, msg)
     return msg
 
