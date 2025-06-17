@@ -65,6 +65,8 @@ def ingest_news(
     else:
         interests = "market, finance, technology, science, health, sports, entertainment"
     latest_news = get_latest_news(from_time, interests)
+    if len(latest_news) == 0:
+        return "No articles found for the specified time and interests."
     for article in latest_news:
         match article:
             case {'title': title, 'url': url, 'content': content}:
