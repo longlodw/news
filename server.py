@@ -58,7 +58,6 @@ def main():
         Endpoint to trigger the ingestion of news articles.
         """
         from_time = body
-        print(f"'{from_time}'")
         api_db = init_api_keys_db(args.api_keys)
         sha256_api_key = hashlib.sha256(base64.b64decode(api_key)).hexdigest()
         try:
@@ -69,7 +68,6 @@ def main():
             api_db.close()
         if from_time is None or from_time == "":
             from_time = (datetime.datetime.now() - datetime.timedelta(days=1)).isoformat()
-        print(f"'{from_time}'")
         with init_document_db(os.path.join(location, "documents.db")) as document_db, init_chat_db(os.path.join(location, "chat.db")) as chat_db:
             try:
                 store_content = lambda content: local_content_store.store_content(location, content)

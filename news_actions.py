@@ -56,11 +56,10 @@ def ingest_news(
     Returns:
         str: A confirmation message indicating successful ingestion.
     """
-    print(f"'{User.ASKER}'")
     old_messages = load_chat_messages(chat_db)
     old_messages_contents = list(apply(old_messages, lambda x: f"{x[0]}: {x[1]}"))
     if len(old_messages_contents) > 0:
-        old_messages_contents.append(f"what is the most probable topic of interest to {User.ASKER} based on recent chat messages in 1 phrase?")
+        old_messages_contents.append(f"given to above, output broadly {User.ASKER}'s news topic preference in 1 phrase and nothing else")
         interests = generate_text(old_messages_contents)
     else:
         interests = "general news"
@@ -78,7 +77,7 @@ def ingest_news(
                 storage.store_document(document_db, store_content, title, url, list(zip(chunks, embeddings)))
             case _:
                 continue  # Skip articles that do not match the expected format
-    msg = generate_text(list(apply(latest_news, lambda x: f"{x['title']}: {x['content']}")) + [f"summarize the information from the news and highlight the most important points"])
+    msg = generate_text(list(apply(latest_news, lambda x: f"{x['title']}: {x['content']}")) + [f"summarize the above information from the news and highlight the most important points while referencing the titles of the articles."])
     store_chat_message(chat_db, User.BROADCASTER, msg)
     return msg
 
@@ -104,11 +103,11 @@ def answer_question(
     Returns:
         str: The generated answer to the question.
     """
-    embedding = get_embedding([question])[0]
+    old_messages = load_chat_messages(chat_db)
+    explicit_question = generate_text(list(apply(old_messages, lambda x: f"{x[0]}: {x[1]}")) + [f"Given the above, paraphrase '{question}' to make it more explicit and clear. Do not say anything else other than the paraphrase."])
+    embedding = get_embedding([explicit_question])[0]
     documents = storage.load_documents(document_db, load_content, embedding)
     contents = list(apply(documents, lambda x: f"title: {x[0]}\nurl: {x[1]}\ncontent: {x[2]}"))
     store_chat_message(chat_db, User.ASKER, question)
-    old_messages = load_chat_messages(chat_db)
-    explicit_question = generate_text(list(apply(old_messages, lambda x: f"{x[0]}: {x[1]}")) + [f"what does '{question}' mean?"])
     contents.append(explicit_question)
     return generate_text(contents)

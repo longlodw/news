@@ -89,21 +89,14 @@ def store_document(db: sqlite3.Connection, store_content: StoreContent, title: s
     cursor.execute('BEGIN TRANSACTION')
     try:
         # Insert document
-        cursor.execute('INSERT OR IGNORE INTO documents (title, url) VALUES (?, ?)', (title, url))
+        cursor.execute('INSERT INTO documents (title, url) VALUES (?, ?)', (title, url))
         document_id = cursor.lastrowid
-        print(f"Document ID: {document_id}")
-        if document_id is None:
-            db.rollback()
-            print(f"Document with title '{title}' and URL '{url}' already exists.")
-            return  # No document was inserted, possibly a duplicate
         
         # Insert chunks
-        for content, embedding in contents:
-            location = store_content(content)
-            cursor.execute('''
-                INSERT INTO chunks (location, document_id, embedding)
-                VALUES (?, ?, ?)
-            ''', (location, document_id, sqlite_vec.serialize_float32(embedding)))
+        cursor.executemany('''
+            INSERT INTO chunks (location, document_id, embedding)
+            VALUES (?, ?, ?)
+        ''', apply(contents, lambda content: (store_content(content[0]), document_id, sqlite_vec.serialize_float32(content[1]))))
         db.commit()
     except Exception as e:
         db.rollback()
