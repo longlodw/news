@@ -28,6 +28,7 @@ export class NewsClient implements INewsClient {
       apikey: this.apiKey,
       q: q,
       language: 'en',
+      size: '4',
     });
     const response = await fetch(`${URL}?${params.toString()}`, {
       headers: {
