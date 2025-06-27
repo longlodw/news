@@ -45,7 +45,13 @@ async function main() {
   const bot = new Telegraf(argv.token);
 
   bot.start((ctx: Context) => ctx.reply('Welcome!'));
-  bot.help((ctx: Context) => ctx.reply('Help message'));
+  bot.help((ctx: Context) => ctx.reply(`
+    Available commands:
+    /start - Start the bot
+    /help - Show this help message
+    /news - Get the latest news summary
+    `));
+
 
   bot.on('text', async (ctx: Context) => {
     const res = await fetch(`http://${argv.host}:${argv.port}/api/chat`, {
@@ -59,43 +65,32 @@ async function main() {
     ctx.reply(`${await res.text()}`);
   });
 
-  bot.command('news', (ctx: Context) => {
-    fetch(`http://${argv.host}:${argv.port}/api/news`, {
+  bot.command('news', async (ctx: Context) => {
+    const resNews = await fetch(`http://${argv.host}:${argv.port}/api/news`, {
       headers: {
         'x-api-key': argv.apikey,
       },
       method: 'POST',
-    })
-      .then(res => {
-        if (!res.ok) {
-          ctx.reply('Failed to fetch news');
-          return;
-        }
-        fetch(`http://${argv.host}:${argv.port}/api/news/chat`, {
-          headers: {
-            'x-api-key': argv.apikey,
-            'content-type': 'text/plain',
-          },
-          method: 'POST',
-          body: "give me a summary of the latest news",
-        })
-          .then(sr => {
-            if (!sr.ok) {
-              ctx.reply('Failed to summarize news');
-              return;
-            }
-            sr.text().then(summary => {
-              ctx.reply(`Latest News Summary:\n${summary}`);
-            });
-          }).catch(err => {
-            console.error('Failed to summarize news:', err);
-            ctx.reply('Failed to summarize news');
-          });
-      }).catch(err => {
-        console.error('Failed to fetch news:', err);
-        ctx.reply('Failed to fetch news');
-      });
-  })
+    });
+    if (!resNews.ok) {
+      ctx.reply('Failed to fetch news');
+      return;
+    }
+    const chatRes = await fetch(`http://${argv.host}:${argv.port}/api/news/chat`, {
+      headers: {
+        'x-api-key': argv.apikey,
+        'content-type': 'text/plain',
+      },
+      method: 'POST',
+      body: "give me a summary of the latest news",
+    });
+    if (!chatRes.ok) {
+      ctx.reply('Failed to summarize news');
+      return;
+    }
+    const chatText = await chatRes.text();
+    ctx.reply(`Latest News Summary:\n${chatText}`);
+  });
 
   await bot.launch().then(() => {
     console.log('Bot is running...');
