@@ -28,7 +28,7 @@ export class ChatHandler {
     const response = await this.geminiClient.generateText(contents.map(content => {
       return {
         role: content.role,
-        text: [content.content],
+        content: [content.content],
       };
     }), cacheId[0]?.value);
     const message = {
