@@ -44,7 +44,7 @@ export class NewsClient implements INewsClient {
     if (!data.results || !Array.isArray(data.results)) {
       throw new Error("Invalid response format from news API");
     }
-    const contents = await Promise.all(data.results.map(async (article: any) => {
+    const contents = await Promise.allSettled(data.results.map(async (article: any) => {
       const page = await puppeteerBrowser.newPage();
       try {
         await page.goto(article.link, { waitUntil: 'networkidle2' });
@@ -65,6 +65,6 @@ export class NewsClient implements INewsClient {
         await page.close();
       }
     }));
-    return contents;
+    return contents.filter(result => result.status === 'fulfilled').map((result: PromiseFulfilledResult<NewsArticle>) => result.value);
   }
 }
