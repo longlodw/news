@@ -27,6 +27,7 @@ export class NewsClient implements INewsClient {
     const params = new URLSearchParams({
       apikey: this.apiKey,
       q: q,
+      language: 'en',
     });
     const response = await fetch(`${URL}?${params.toString()}`, {
       headers: {
