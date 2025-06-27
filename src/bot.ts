@@ -59,32 +59,43 @@ async function main() {
     ctx.reply(`${await res.text()}`);
   });
 
-  bot.command('news', async (ctx: Context) => {
-    const res = await fetch(`http://${argv.host}:${argv.port}/api/news`, {
+  bot.command('news', (ctx: Context) => {
+    fetch(`http://${argv.host}:${argv.port}/api/news`, {
       headers: {
         'x-api-key': argv.apikey,
       },
       method: 'POST',
-    });
-    if (!res.ok) {
-      ctx.reply('Failed to fetch news');
-      return;
-    }
-    const summaryRes = await fetch(`http://${argv.host}:${argv.port}/api/news/chat`, {
-      headers: {
-        'x-api-key': argv.apikey,
-        'content-type': 'text/plain',
-      },
-      method: 'POST',
-      body: "give me a summary of the latest news",
-    });
-    if (!summaryRes.ok) {
-      ctx.reply('Failed to summarize news');
-      return;
-    }
-    const summary = await summaryRes.text();
-    ctx.reply(`Latest News Summary:\n${summary}`);
-  });
+    })
+      .then(res => {
+        if (!res.ok) {
+          ctx.reply('Failed to fetch news');
+          return;
+        }
+        fetch(`http://${argv.host}:${argv.port}/api/news/chat`, {
+          headers: {
+            'x-api-key': argv.apikey,
+            'content-type': 'text/plain',
+          },
+          method: 'POST',
+          body: "give me a summary of the latest news",
+        })
+          .then(sr => {
+            if (!sr.ok) {
+              ctx.reply('Failed to summarize news');
+              return;
+            }
+            sr.text().then(summary => {
+              ctx.reply(`Latest News Summary:\n${summary}`);
+            });
+          }).catch(err => {
+            console.error('Failed to summarize news:', err);
+            ctx.reply('Failed to summarize news');
+          });
+      }).catch(err => {
+        console.error('Failed to fetch news:', err);
+        ctx.reply('Failed to fetch news');
+      });
+  })
 
   await bot.launch().then(() => {
     console.log('Bot is running...');
