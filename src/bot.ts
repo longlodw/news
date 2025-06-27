@@ -52,19 +52,6 @@ async function main() {
     /news - Get the latest news summary
     `));
 
-
-  bot.on('text', async (ctx: Context) => {
-    const res = await fetch(`http://${argv.host}:${argv.port}/api/chat`, {
-      headers: {
-        'Content-Type': 'text/plain',
-        'x-api-key': argv.apikey,
-      },
-      method: 'POST',
-      body: ctx.text,
-    });
-    ctx.reply(`${await res.text()}`);
-  });
-
   bot.command('news', async (ctx: Context) => {
     const resNews = await fetch(`http://${argv.host}:${argv.port}/api/news`, {
       headers: {
@@ -92,6 +79,17 @@ async function main() {
     ctx.reply(`Latest News Summary:\n${chatText}`);
   });
 
+  bot.on('text', async (ctx: Context) => {
+    const res = await fetch(`http://${argv.host}:${argv.port}/api/chat`, {
+      headers: {
+        'Content-Type': 'text/plain',
+        'x-api-key': argv.apikey,
+      },
+      method: 'POST',
+      body: ctx.text,
+    });
+    ctx.reply(`${await res.text()}`);
+  });
   await bot.launch().then(() => {
     console.log('Bot is running...');
   }).catch(err => {
