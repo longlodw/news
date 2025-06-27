@@ -1,4 +1,3 @@
-import { throws } from "assert";
 import fetch from "node-fetch";
 import puppeteer from "puppeteer";
 
@@ -49,7 +48,7 @@ export class NewsClient implements INewsClient {
     const contents = await Promise.allSettled(data.results.map(async (article: any) => {
       const page = await puppeteerBrowser.newPage();
       try {
-        await page.goto(article.link, { waitUntil: 'networkidle2', timeout: 12000 });
+        await page.goto(article.link, { waitUntil: 'networkidle2', timeout: 32000 });
         const content = await page.evaluate(() => {
           const elements = document.querySelectorAll('html');
           return Array.from(elements).map(el => el.innerText).join('\n').trim();
