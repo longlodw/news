@@ -20,10 +20,14 @@ export class NewsHandler {
   async post(): Promise<number> {
     const oldChats = await this.chatClient.loadMany(16);
     // get user interests based on the last 16 chats
-    const contents = oldChats.map(chat => ({
-      role: chat.role,
-      content: [chat.content],
-    })) as Content[];
+    const contents = oldChats.map(chat => {
+      switch (chat.role) {
+        case "model":
+          return createUserContent(chat.content) as Content;
+        case "user":
+          return createUserContent(chat.content) as Content;
+      }
+    }) as Content[];
     let interests;
     if (contents.length !== 0) {
       contents.push(createUserContent("based on the above chats, what are the user's interests? Output the interests in 1 phrase") as Content);

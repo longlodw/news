@@ -1,3 +1,4 @@
+import { createModelContent, createUserContent } from "@google/genai";
 import type { ICacheClient } from "./cache.js";
 import { type Role, type IChatClient } from "./chat.js";
 import type { IGeminiClient } from "./gemini.js";
@@ -26,10 +27,12 @@ export class ChatHandler {
     };
     contents.push(question);
     const response = await this.geminiClient.generateText(contents.map(content => {
-      return {
-        role: content.role,
-        content: [content.content],
-      };
+      switch (content.role) {
+        case "model":
+          return createModelContent(content.content);
+        case "user":
+          return createUserContent(content.content);
+      }
     }), cacheId[0]?.value);
     const message = {
       role: 'model' as Role,
