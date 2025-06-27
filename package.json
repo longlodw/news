@@ -2,9 +2,11 @@
   "name": "news",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev-server": "tsx watch src/index.ts",
+    "dev-bot": "tsx watch src/bot.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start-server": "node dist/index.js",
+    "start-bot": "node dist/bot.js"
   },
   "dependencies": {
     "@google/genai": "^1.7.0",
@@ -14,6 +16,7 @@
     "hono": "^4.8.3",
     "node-fetch": "^3.3.2",
     "puppeteer": "^24.11.0",
+    "telegraf": "^4.16.3",
     "yargs": "^17.7.2"
   },
   "devDependencies": {

@@ -54,7 +54,7 @@ export class NewsHandler {
       .map((result: PromiseFulfilledResult<File>) => result.value);
     console.log(`Uploaded ${files.length} files to Gemini`);
     const cacheId = await this.geminiClient.createCache(
-      createUserContent(files.map(file => createPartFromUri(file.uri!, file.mimeType!))),
+      createModelContent(files.map(file => createPartFromUri(file.uri!, file.mimeType!))),
       "You are a news aggregator. You will receive a list of news articles. Your task is to help the user understand the content. When answering, always refer to the article's title and content. Be sure to predict the user's next actions and suggest follow up questions that the user can ask based on the prediction."
     );
     await this.cacheClient.store(cacheId, cacheId);
