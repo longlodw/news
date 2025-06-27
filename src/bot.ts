@@ -53,30 +53,36 @@ async function main() {
     `));
 
   bot.command('news', async (ctx: Context) => {
-    const resNews = await fetch(`http://${argv.host}:${argv.port}/api/news`, {
-      headers: {
-        'x-api-key': argv.apikey,
-      },
-      method: 'POST',
-    });
-    if (!resNews.ok) {
-      ctx.reply('Failed to fetch news');
-      return;
+    try {
+      const resNews = await fetch(`http://${argv.host}:${argv.port}/api/news`, {
+        headers: {
+          'x-api-key': argv.apikey,
+        },
+        method: 'POST',
+      });
+      if (!resNews.ok) {
+        ctx.reply('Failed to fetch news');
+        return;
+      }
+      const chatRes = await fetch(`http://${argv.host}:${argv.port}/api/news/chat`, {
+        headers: {
+          'x-api-key': argv.apikey,
+          'content-type': 'text/plain',
+        },
+        method: 'POST',
+        body: "give me a summary of the latest news",
+      });
+      if (!chatRes.ok) {
+        ctx.reply('Failed to summarize news');
+        return;
+      }
+      const chatText = await chatRes.text();
+      console.log('Chat response:', chatText);
+      ctx.reply(`Latest News Summary:\n${chatText}`);
+    } catch (error) {
+      console.error('Error fetching news:', error);
+      ctx.reply('An error occurred while fetching news.');
     }
-    const chatRes = await fetch(`http://${argv.host}:${argv.port}/api/news/chat`, {
-      headers: {
-        'x-api-key': argv.apikey,
-        'content-type': 'text/plain',
-      },
-      method: 'POST',
-      body: "give me a summary of the latest news",
-    });
-    if (!chatRes.ok) {
-      ctx.reply('Failed to summarize news');
-      return;
-    }
-    const chatText = await chatRes.text();
-    ctx.reply(`Latest News Summary:\n${chatText}`);
   });
 
   bot.on('text', async (ctx: Context) => {
