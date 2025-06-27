@@ -1,3 +1,4 @@
+import { throws } from "assert";
 import fetch from "node-fetch";
 import puppeteer from "puppeteer";
 
@@ -62,6 +63,9 @@ export class NewsClient implements INewsClient {
           pubDateTZ: article.pubDateTZ,
           content: content || "No content available",
         };
+      } catch (error) {
+        console.warn(`Failed to fetch content for article ${article.article_id}:`, error);
+        throw new Error(`Failed to fetch content for article ${article.article_id}`);
       } finally {
         await page.close();
       }
