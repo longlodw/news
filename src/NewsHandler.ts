@@ -22,7 +22,7 @@ export class NewsHandler {
     // get user interests based on the last 16 chats
     const contents = oldChats.map(chat => ({
       role: chat.role,
-      content: chat.content,
+      content: [chat.content],
     })) as Content[];
     let interests;
     if (contents.length !== 0) {
