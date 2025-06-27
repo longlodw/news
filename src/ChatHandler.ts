@@ -33,7 +33,7 @@ export class ChatHandler {
         case "user":
           return createUserContent(content.content);
       }
-    }), cacheId[0]?.value);
+    }));
     const message = {
       role: 'model' as Role,
       content: response,
