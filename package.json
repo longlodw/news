@@ -1,0 +1,25 @@
+{
+  "name": "news",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@google/genai": "^1.7.0",
+    "@hono/node-server": "^1.14.4",
+    "@hono/swagger-ui": "^0.5.2",
+    "@libsql/client": "^0.15.9",
+    "hono": "^4.8.3",
+    "node-fetch": "^3.3.2",
+    "puppeteer": "^24.11.0",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "@types/yargs": "^17.0.33",
+    "tsx": "^4.7.1",
+    "typescript": "^5.8.3"
+  }
+}
