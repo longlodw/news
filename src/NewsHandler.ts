@@ -1,4 +1,4 @@
-import { createPartFromUri, createUserContent, type Content, type File } from "@google/genai";
+import { createModelContent, createPartFromUri, createUserContent, type Content, type File } from "@google/genai";
 import type { IChatClient } from "./chat.js";
 import type { IGeminiClient } from "./gemini.js";
 import type { INewsClient } from "./news.js";
@@ -23,7 +23,7 @@ export class NewsHandler {
     const contents = oldChats.map(chat => {
       switch (chat.role) {
         case "model":
-          return createUserContent(chat.content) as Content;
+          return createModelContent(chat.content) as Content;
         case "user":
           return createUserContent(chat.content) as Content;
       }
@@ -54,7 +54,7 @@ export class NewsHandler {
       .map((result: PromiseFulfilledResult<File>) => result.value);
     console.log(`Uploaded ${files.length} files to Gemini`);
     const cacheId = await this.geminiClient.createCache(
-      files.map(file => createPartFromUri(file.uri!, file.mimeType!)),
+      createUserContent(files.map(file => createPartFromUri(file.uri!, file.mimeType!))),
       "You are a news aggregator. You will receive a list of news articles. Your task is to help the user understand the content. When answering, always refer to the article's title and content. Be sure to predict the user's next actions and suggest follow up questions that the user can ask based on the prediction."
     );
     await this.cacheClient.store(cacheId, cacheId);
