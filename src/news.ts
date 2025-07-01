@@ -1,5 +1,5 @@
 import fetch from "node-fetch";
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
 
 const URL = 'https://newsdata.io/api/1/latest';
 
@@ -18,17 +18,25 @@ export interface INewsClient {
 
 export class NewsClient implements INewsClient {
   private apiKey: string;
+  private chromePath: string;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, chromePath: string) {
     this.apiKey = apiKey;
+    this.chromePath = chromePath;
   }
 
   async fetchLatestNews(q: string): Promise<NewsArticle[]> {
+    console.log(this.chromePath);
+    const puppeteerBrowser = await puppeteer.launch({
+      headless: true,
+      executablePath: this.chromePath,
+    });
     const params = new URLSearchParams({
       apikey: this.apiKey,
       q: q,
       language: 'en',
     });
+    console.log(params.toString());
     const response = await fetch(`${URL}?${params.toString()}`, {
       headers: {
         'Accept': 'application/json',
@@ -38,9 +46,6 @@ export class NewsClient implements INewsClient {
     if (!response.ok) {
       throw new Error(`Failed to fetch news: ${response.statusText}`);
     }
-    const puppeteerBrowser = await puppeteer.launch({
-      headless: true,
-    });
     const data: any = await response.json();
     if (!data.results || !Array.isArray(data.results)) {
       throw new Error("Invalid response format from news API");

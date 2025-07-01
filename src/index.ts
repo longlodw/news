@@ -42,6 +42,12 @@ async function main() {
       description: 'NewsData API key',
       requiresArg: true,
     })
+    .option('chrome-path', {
+      alias: 'c',
+      type: 'string',
+      description: 'Path to Chrome executable',
+      default: '/usr/bin/google-chrome-stable',
+    })
     .option('storage-path', {
       alias: 's',
       type: 'string',
@@ -62,7 +68,7 @@ async function main() {
     console.error('Error: --newsdata-key is required');
     process.exit(1);
   }
-  const newsClient = new NewsClient(argv.newsdataKey);
+  const newsClient = new NewsClient(argv.newsdataKey, argv.chromePath);
   if (!argv.geminiKey) {
     console.error('Error: --gemini-key is required');
     process.exit(1);

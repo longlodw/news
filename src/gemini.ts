@@ -30,9 +30,6 @@ export class GeminiClient implements IGeminiClient {
   async uploadFile(file: Blob): Promise<File> {
     const response = await this.client.files.upload({
       file,
-      config: {
-        mimeType: file.type,
-      }
     });
     return response;
   }
