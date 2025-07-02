@@ -26,7 +26,6 @@ export class NewsClient implements INewsClient {
   }
 
   async fetchLatestNews(q: string): Promise<NewsArticle[]> {
-    console.log(this.chromePath);
     const puppeteerBrowser = await puppeteer.launch({
       headless: true,
       executablePath: this.chromePath,
@@ -36,7 +35,6 @@ export class NewsClient implements INewsClient {
       q: q,
       language: 'en',
     });
-    console.log(params.toString());
     const response = await fetch(`${URL}?${params.toString()}`, {
       headers: {
         'Accept': 'application/json',

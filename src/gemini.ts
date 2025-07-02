@@ -3,7 +3,7 @@ import { GoogleGenAI, type ContentListUnion, type ContentUnion, type File } from
 export interface IGeminiClient {
   generateText: (contents: ContentListUnion, cacheId?: string) => Promise<string>;
   uploadFile: (file: Blob) => Promise<File>;
-  createCache: (contents: ContentListUnion, systemPrompt?: ContentUnion) => Promise<string>;
+  createCache: (systemPrompt?: ContentUnion) => Promise<string>;
 }
 
 export class GeminiClient implements IGeminiClient {
@@ -14,6 +14,10 @@ export class GeminiClient implements IGeminiClient {
   }
 
   async generateText(contents: ContentListUnion, cacheId?: string): Promise<string> {
+    const caches = await this.client.caches.list();
+    for (const cache of caches.page) {
+      console.log(`Cache ID: ${cache.name}`);
+    }
     const response = await this.client.models.generateContent({
       contents,
       model: "gemini-2.0-flash",
@@ -34,11 +38,10 @@ export class GeminiClient implements IGeminiClient {
     return response;
   }
 
-  async createCache(contents: ContentListUnion, systemInstruction?: ContentUnion): Promise<string> {
+  async createCache(systemInstruction?: ContentUnion): Promise<string> {
     const response = await this.client.caches.create({
       model: "gemini-2.0-flash",
       config: {
-        contents,
         systemInstruction,
       },
     });

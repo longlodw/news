@@ -16,6 +16,7 @@ export class ChatHandler {
 
   async post(q: string): Promise<string> {
     const cacheId = await this.cacheClient.loadMany(1);
+    console.log("Cache ID:", cacheId);
     const pastChats = await this.chatClient.loadMany(16);
     const contents = pastChats.map(chat => ({
       role: chat.role,

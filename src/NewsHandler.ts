@@ -1,4 +1,4 @@
-import { createModelContent, createPartFromUri, createUserContent, type Content, type File } from "@google/genai";
+import { createModelContent, createUserContent, type Content } from "@google/genai";
 import type { IChatClient } from "./chat.js";
 import type { IGeminiClient } from "./gemini.js";
 import type { INewsClient } from "./news.js";
@@ -30,34 +30,26 @@ export class NewsHandler {
     }) as Content[];
     let interests;
     if (contents.length !== 0) {
-      contents.push(createUserContent("based on the above chats, what are the user's interests? Output the interests in 1 phrase") as Content);
+      contents.push(createUserContent("based on the above chats, what are the user's interests? Output the interests in 1 short phrase. For example, 'USA tariff'") as Content);
       const response = await this.geminiClient.generateText(contents);
       interests = response.trim().toLowerCase();
     } else {
       // if no chats, use a default interest
       interests = "finance";
     }
+    console.log(`User interests: ${interests}`);
     const newsArticles = await this.newsClient.fetchLatestNews(interests);
-    for (const article of newsArticles) {
-      console.log(`Fetched article: ${article.title} (${article.article_id}) snippet: ${article.content.slice(0, 100)}...)`);
-    }
     if (newsArticles.length === 0) {
-      console.warn("No news articles found for the user's interests");
+      console.warn(`No news articles found for the user's interests ${interests}`);
       return 0;
     }
-    const fileResults = await Promise.allSettled(newsArticles.map(async article => await this.geminiClient.uploadFile(new Blob(
-      [JSON.stringify(article)],
-      { type: "application/json" },
-    ))));
-    const files = fileResults
-      .filter(result => result.status === "fulfilled")
-      .map((result: PromiseFulfilledResult<File>) => result.value);
-    console.log(`Uploaded ${files.length} files to Gemini`);
-    const cacheId = await this.geminiClient.createCache(
-      createModelContent(files.map(file => createPartFromUri(file.uri!, file.mimeType!))),
-      "You are a news aggregator. You will receive a list of news articles. Your task is to help the user understand the content. When answering, always refer to the article's title and content. Be sure to predict the user's next actions and suggest follow up questions that the user can ask based on the prediction."
-    );
+    const cacheId = await this.geminiClient.createCache([
+      "You are a news aggregator. You will receive a list of news articles. Your task is to help the user understand the content. When answering, always refer to the article's title and content. Here is the list of news articles in JSON format:",
+      JSON.stringify(newsArticles),
+      "When addressing the user, always speak in paragraphs and not in bullet points. Always use the article's title and content to answer the user's questions. If the user asks about a specific article, refer to its title and content.",
+      "Be sure to predict the user's next actions and address them to suggest follow up questions that the user can ask based on the prediction."
+    ]);
     await this.cacheClient.store(cacheId, cacheId);
-    return files.length;
+    return newsArticles.length;
   }
 }
