@@ -47,7 +47,8 @@ export class NewsHandler {
       "You are a news aggregator. You will receive a list of news articles. Your task is to help the user understand the content. When answering, always refer to the article's title and content. Here is the list of news articles in JSON format:",
       JSON.stringify(newsArticles),
       "When addressing the user, always speak in paragraphs and not in bullet points. Always use the article's title and content to answer the user's questions. If the user asks about a specific article, refer to its title and content.",
-      "Be sure to predict the user's next actions and address them to suggest follow up questions that the user can ask based on the prediction."
+      "Be sure to predict the user's next actions and address them to suggest follow up questions that the user can ask based on the prediction.",
+      "When suggesting follow-up questions, only suggest questions that can be answered in details using the articles."
     ]);
     await this.cacheClient.store(cacheId, cacheId);
     return newsArticles.length;
