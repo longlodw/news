@@ -1,22 +1,17 @@
 import { createModelContent, createUserContent } from "@google/genai";
-import type { ICacheClient } from "./cache.js";
 import { type Role, type IChatClient } from "./chat.js";
 import type { IGeminiClient } from "./gemini.js";
 
 export class ChatHandler {
   private chatClient: IChatClient
-  private cacheClient: ICacheClient
   private geminiClient: IGeminiClient;
 
-  constructor(chatClient: IChatClient, cacheClient: ICacheClient, geminiClient: IGeminiClient) {
+  constructor(chatClient: IChatClient, geminiClient: IGeminiClient) {
     this.chatClient = chatClient;
-    this.cacheClient = cacheClient;
     this.geminiClient = geminiClient;
   }
 
   async post(q: string): Promise<string> {
-    const cacheId = await this.cacheClient.loadMany(1);
-    console.log("Cache ID:", cacheId);
     const pastChats = await this.chatClient.loadMany(16);
     const contents = pastChats.map(chat => ({
       role: chat.role,
@@ -34,7 +29,7 @@ export class ChatHandler {
         case "user":
           return createUserContent(content.content);
       }
-    }), cacheId[0]?.value);
+    }));
     const message = {
       role: 'model' as Role,
       content: response,

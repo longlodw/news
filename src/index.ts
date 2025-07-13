@@ -5,10 +5,7 @@ import { hideBin } from 'yargs/helpers';
 import { ApiKeyClient } from './apikey.js';
 import { ApiKeyHandler } from './ApiKeyHandler.js';
 import { ChatClient } from './chat.js';
-import { NewsClient } from './news.js';
 import { GeminiClient } from './gemini.js';
-import { NewsHandler } from './NewsHandler.js';
-import { CacheClient } from './cache.js';
 import { ChatHandler } from './ChatHandler.js';
 import { swaggerUI } from '@hono/swagger-ui';
 import { openapi } from './openapi.js'; // Import OpenAPI spec
@@ -36,18 +33,6 @@ async function main() {
       description: 'Gemini API key',
       requiresArg: true,
     })
-    .option('newsdata-key', {
-      alias: 'n',
-      type: 'string',
-      description: 'NewsData API key',
-      requiresArg: true,
-    })
-    .option('chrome-path', {
-      alias: 'c',
-      type: 'string',
-      description: 'Path to Chrome executable',
-      default: '/usr/bin/google-chrome-stable',
-    })
     .option('storage-path', {
       alias: 's',
       type: 'string',
@@ -68,7 +53,6 @@ async function main() {
     console.error('Error: --newsdata-key is required');
     process.exit(1);
   }
-  const newsClient = new NewsClient(argv.newsdataKey, argv.chromePath);
   if (!argv.geminiKey) {
     console.error('Error: --gemini-key is required');
     process.exit(1);
@@ -88,28 +72,6 @@ async function main() {
     }
   })
 
-  app.post('/api/news', async (c) => {
-    try {
-      const apikey = c.req.header('x-api-key');
-      if (!apikey) {
-        return c.json({ error: 'API key is required' }, 400);
-      }
-      const apiKeyObject = await apiKeyClient.load(apikey);
-      if (!apiKeyObject) {
-        return c.json({ error: 'Invalid API key' }, 401);
-      }
-      const chatClient = await ChatClient.create(`file:${apiKeyObject.url}/chats.db`);
-      const cacheClient = await CacheClient.create(`file:${apiKeyObject.url}/cache.db`);
-      const newsHandler = new NewsHandler(newsClient, chatClient, geminiClient, cacheClient);
-      const filesCount = await newsHandler.post();
-      return c.json({ filesCount });
-    }
-    catch (error) {
-      console.error('Error processing news request:', error);
-      return c.json({ error: 'Failed to process news request' }, 500);
-    }
-  });
-
   app.post('/api/chat', async (c) => {
     try {
       const apikey = c.req.header('x-api-key');
@@ -125,8 +87,7 @@ async function main() {
         return c.json({ error: 'Invalid chat request format' }, 400);
       }
       const chatClient = await ChatClient.create(`file:${apiKeyObject.url}/chats.db`);
-      const cacheClient = await CacheClient.create(`file:${apiKeyObject.url}/cache.db`);
-      const chatHandler = new ChatHandler(chatClient, cacheClient, geminiClient);
+      const chatHandler = new ChatHandler(chatClient, geminiClient);
       const response = await chatHandler.post(chatRequest);
       return c.text(response);
     } catch (error) {

@@ -89,24 +89,13 @@ Available commands:
 
   bot.command('news', async (ctx: Context) => {
     try {
-      const resNews = await fetch(`http://${argv.host}:${argv.port}/api/news`, {
-        headers: {
-          'x-api-key': argv.apikey,
-        },
-        method: 'POST',
-      });
-      if (!resNews.ok) {
-        console.error(resNews.statusText)
-        ctx.reply(formatMarkdown('Failed to fetch news'), { parse_mode: 'MarkdownV2' });
-        return;
-      }
       const chatRes = await fetch(`http://${argv.host}:${argv.port}/api/chat`, {
         headers: {
           'x-api-key': argv.apikey,
           'content-type': 'text/plain',
         },
         method: 'POST',
-        body: "give me a summary of the latest news",
+        body: "give me a summary of the latest news that I would be interested in",
       });
       if (!chatRes.ok) {
         console.error(chatRes.status, chatRes.statusText)
@@ -133,11 +122,7 @@ Available commands:
     const responseText = await res.text();
     ctx.reply(formatMarkdown(responseText), { parse_mode: 'MarkdownV2' });
   });
-  await bot.launch().then(() => {
-    console.log('Bot is running...');
-  }).catch(err => {
-    console.error('Failed to start the bot:', err);
-  });
+  await bot.launch();
 }
 
 main().catch(err => {

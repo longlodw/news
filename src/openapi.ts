@@ -27,37 +27,6 @@ export const openapi = {
         }
       }
     },
-    "/api/news": {
-      "post": {
-        "summary": "Submit news processing request",
-        "parameters": [
-          {
-            "name": "x-api-key",
-            "in": "header",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "News processed",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "filesCount": { "type": "integer" }
-                  }
-                }
-              }
-            }
-          },
-          "400": { "description": "Missing or invalid API key" },
-          "401": { "description": "Unauthorized" },
-          "500": { "description": "Server error" }
-        }
-      }
-    },
     "/api/chat": {
       "post": {
         "summary": "Submit a chat message",
