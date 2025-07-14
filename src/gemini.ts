@@ -19,10 +19,7 @@ export class GeminiClient implements IGeminiClient {
         tools: [{
           googleSearch: {}
         }],
-        systemInstruction: [
-          "You are a helpful assistant that answers questions and queries using search tool where applicable.",
-          "When interacting with the user, you should predict the user's intent and provide relevant information and follow-up suggestions.",
-        ]
+        systemInstruction: "You are a helpful assistant that answers questions and queries using search tool where applicable. When interacting with the user, you should predict the user's intent and provide relevant information, then suggest follow-up questions, even when you are using the search tool. Always end your response with suggestion including questions that users might ask."
       }
     });
     if (!response.text) {

@@ -49,10 +49,6 @@ async function main() {
   }
   const storagePath = resolve(argv.storagePath);
   const apiKeyClient = await ApiKeyClient.create(`file:${storagePath}/apikeys.db`);
-  if (!argv.newsdataKey) {
-    console.error('Error: --newsdata-key is required');
-    process.exit(1);
-  }
   if (!argv.geminiKey) {
     console.error('Error: --gemini-key is required');
     process.exit(1);
